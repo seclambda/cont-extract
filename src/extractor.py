@@ -1,57 +1,48 @@
 # Lógica del script
 import re
-import pyperclip
+import re
+from typing import Tuple, List
 
-# Obtener texto del portapapeles
-text = pyperclip.paste()
+class DataExtractor:
+    def __init__(self):
+        # Regex para los telefonos
+        self.phone_regex = re.compile(r'''(
+            (\d{3}|\(\d{3}\))?       # Código de área (grupo 2)
+            (\s|-|\.)?               # Separador (grupo 3)
+            (\d{3})                  # Primeros 3 dígitos (grupo 4)
+            (\s|-|\.)                # Separador '' (grupo 5)
+            (\d{4})                  # Últimos 4 dígitos (grupo 6)
+            (\s*(ext|x|ext\.)\s*(\d{2,5}))?  # Extensión (grupo 7, 8 y 9)
+        )''', re.VERBOSE)
+        # regex para los correos electronicos
+        self.email_regex = re.compile(r'''(
+            [a-zA-Z0-9._%+-]+       # Nombre de usuario
+            @                       # Simbolo arroba @
+            [a-zA-Z0-9.-]+          # Nombre de dominio
+            (\.[a-zA-Z]{2,4})       # .es .com etc  
+        )''', re.VERBOSE)
 
-# Expresión regular para los números telefónicos
-phone_regex = re.compile(r'''(
-    (\d{3}|\(\d{3}\))?       # Código de área (grupo 2)
-    (\s|-|\.)?               # Separador (grupo 3)
-    (\d{3})                  # Primeros 3 dígitos (grupo 4)
-    (\s|-|\.)                # Separador (grupo 5)
-    (\d{4})                  # Últimos 4 dígitos (grupo 6)
-    (\s*(ext|x|ext\.)\s*(\d{2,5}))?  # Extensión (grupo 7, 8 y 9)
-)''', re.VERBOSE)
+    def extract_phones(self, text: str) -> List[str]:
+        """Extrae números de teléfono del texto proporcionado"""
+        matches = []
+        for match in self.phone_regex.findall(text):
+            if match[1]:
+                area_code = match[1].replace('(', '').replace(')', '')
+            else:
+                area_code = ''
+                
+            phone_num = '-'.join([area_code, match[3], match[5]]) if area_code else '-'.join([match[3], match[5]])
+            
+            if match[8]:
+                phone_num += ' x' + match[8]
+            
+            matches.append(phone_num)
+        return matches
 
-#To-Do Crear expresión regular para los correos electronicos y 
-# crear un bucle para encontrar los patrones
-email_regex = re.compile(r'''(
-    [a-zA-Z0-9._%+-]+       # Nombre de usuario
-    @                       # Simbolo arroba @
-    [a-zA-Z0-9.-]+          # Nombre de dominio del correo (@gmail, etc...)
-    (\.[a-zA-Z]{2,4})       # punto-algo (.com .es)     
-)''', re.VERBOSE)
+    def extract_emails(self, text: str) -> List[str]:
+        """Extrae direcciones de email del texto proporcionado"""
+        return [email[0] for email in self.email_regex.findall(text)]
 
-matches_phone = []  # Lista para almacenar los números encontrados
-matches_email = [] # Lista para almacenar los correos encontrados
-
-for match in phone_regex.findall(text):
-   
-    # To-do: Limpia el código de área (es decir quita paréntesis)
-    if match[1]:
-        area_code = match[1].replace('(', '').replace(')', '') 
-    else:
-        area_code = ''
-    # Construye el número base
-    if area_code:
-        phone_num = '-'.join([area_code, match[3], match[5]])
-    else:
-        phone_num = '-'.join([match[3], match[5]])
-    
-    # Se agrega la extensión si existe (El grupo 9 contiene los dígitos de extensión)
-    if match[8]:
-        phone_num += ' x' + match[8]
-
-    matches_phone.append(phone_num)
-
-# Salidas
-if matches_phone:
-    result = '\n'.join(matches_phone)
-    pyperclip.copy(result)
-    print('Números encontrados:')
-    print(result)
-else:
-    print('Ningún número de teléfono fue encontrado.')
-
+    def extract_all(self, text: str) -> Tuple[List[str], List[str]]:
+        """Extrae tanto teléfonos como los correos de una vez """
+        return (self.extract_phones(text), self.extract_emails(text))
