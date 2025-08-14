@@ -17,9 +17,15 @@ phone_regex = re.compile(r'''(
 
 #To-Do Crear expresión regular para los correos electronicos y 
 # crear un bucle para encontrar los patrones
-email_regex = re,compile()
+email_regex = re.compile(r'''(
+    [a-zA-Z0-9._%+-]+       # Nombre de usuario
+    @                       # Simbolo arroba @
+    [a-zA-Z0-9.-]+          # Nombre de dominio del correo (@gmail, etc...)
+    (\.[a-zA-Z]{2,4})       # punto-algo (.com .es)     
+)''', re.VERBOSE)
 
 matches_phone = []  # Lista para almacenar los números encontrados
+matches_email = [] # Lista para almacenar los correos encontrados
 
 for match in phone_regex.findall(text):
    
@@ -37,7 +43,7 @@ for match in phone_regex.findall(text):
     # Se agrega la extensión si existe (El grupo 9 contiene los dígitos de extensión)
     if match[8]:
         phone_num += ' x' + match[8]
-    
+
     matches_phone.append(phone_num)
 
 # Salidas
