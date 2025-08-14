@@ -22,9 +22,12 @@ email_regex = re,compile()
 matches_phone = []  # Lista para almacenar los números encontrados
 
 for match in phone_regex.findall(text):
-    area_code = match[1].replace('(', '').replace(')', '') 
+   
     # To-do: Limpia el código de área (es decir quita paréntesis)
-    
+    if match[1]:
+        area_code = match[1].replace('(', '').replace(')', '') 
+    else:
+        area_code = ''
     # Construye el número base
     if area_code:
         phone_num = '-'.join([area_code, match[3], match[5]])
