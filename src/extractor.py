@@ -1,3 +1,4 @@
+# Lógica del script
 import re
 import pyperclip
 
